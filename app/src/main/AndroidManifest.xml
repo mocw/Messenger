@@ -17,7 +17,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".userListActivity"></activity>
+        <activity android:name=".chatActivity"></activity>
+        <activity android:name=".userListActivity" />
         <activity android:name=".ProfileActivity" />
         <activity
             android:name=".LoginActivity"
