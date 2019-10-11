@@ -30,11 +30,13 @@ public class LoginActivity extends AppCompatActivity {
     private String textLogin;
     private String textPassword;
     public static String UID;
+    public static String nick;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
 
         progressBar = findViewById(R.id.progressBar2);
         etLogin = findViewById(R.id.etUserEmail);
@@ -45,6 +47,9 @@ public class LoginActivity extends AppCompatActivity {
 
         mFirebaseInstance = FirebaseDatabase.getInstance();
         final DatabaseReference myRef = mFirebaseInstance.getReference().child("Users");
+
+        etLogin.setText("radek"); // PAMIETAC O USUNIECIU!
+        etPassword.setText("radzio");
 
         userLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -119,6 +124,7 @@ public class LoginActivity extends AppCompatActivity {
                     if(textLogin.equals(currLogin) && textPassword.equals(currPaswd)) {
                         progressBar.setVisibility(View.GONE);
                         UID=item.getKey(); //<--Klucz zalogowanego uzytkownika
+                        nick=currLogin;
                         startActivity(new Intent(LoginActivity.this, ProfileActivity.class));
                         return;
                     }
@@ -137,6 +143,7 @@ public class LoginActivity extends AppCompatActivity {
     }
     private void setData()
     {
+
         textLogin = etLogin.getText().toString();
         textPassword = etPassword.getText().toString();
     }
