@@ -25,9 +25,9 @@ import java.util.List;
 public class userListActivity extends AppCompatActivity {
 
     private List<String> users;
-    private DatabaseReference databaseReference;
     private ProgressDialog progressDialog;
     private ListView lvUserList;
+    private DatabaseReference myRef = FireBase.dbReference();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,16 +39,14 @@ public class userListActivity extends AppCompatActivity {
         progressDialog.setMessage("Wczytywanie");
         progressDialog.show();
 
-        databaseReference= FirebaseDatabase.getInstance().getReference().child("Users");
-
-        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+        myRef.child("Users").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Iterator<DataSnapshot> items = dataSnapshot.getChildren().iterator();
                 while(items.hasNext()) {
                     DataSnapshot item = items.next();
                     String currLogin = item.child("nick").getValue().toString().trim();
-                    if(!currLogin.equals(LoginActivity.nick))
+                    if(!currLogin.equals(LoginActivity.getNick()))
                     {
                         users.add(currLogin);
                     }

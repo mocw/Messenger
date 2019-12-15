@@ -1,5 +1,7 @@
 package com.example.messenger;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -13,10 +15,10 @@ import android.widget.Toast;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.Iterator;
+import android.os.Handler;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -25,17 +27,18 @@ public class LoginActivity extends AppCompatActivity {
     private EditText etPassword;
     private Button userLogin;
     private Button userSignUp;
-    private DatabaseReference mFirebaseDB;
-    private FirebaseDatabase mFirebaseInstance;
     private String textLogin;
     private String textPassword;
-    public static String UID;
-    public static String nick;
+    private static String UID;
+    private static String nick;
+    private  AlertDialog.Builder builder;
+    private  DatabaseReference myRef = FireBase.dbReference();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
 
 
         progressBar = findViewById(R.id.progressBar2);
@@ -45,11 +48,10 @@ public class LoginActivity extends AppCompatActivity {
         userSignUp=findViewById(R.id.buttonUserSignIp);
 
 
-        mFirebaseInstance = FirebaseDatabase.getInstance();
-        final DatabaseReference myRef = mFirebaseInstance.getReference().child("Users");
-
         etLogin.setText("radek"); // PAMIETAC O USUNIECIU!
         etPassword.setText("radzio");
+
+        builder=new AlertDialog.Builder(LoginActivity.this);
 
         userLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -67,8 +69,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onClick(View v) {
                 setData();
                 if (checkLoginData()) {
-                    final DatabaseReference myRef = mFirebaseInstance.getReference().child("Users");
-                    myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    myRef.child("Users").addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             boolean exists=false;
@@ -100,9 +101,8 @@ public class LoginActivity extends AppCompatActivity {
 
     private void addUser() {
 
-            User u=new User(textLogin,textPassword);
-            final DatabaseReference myRef = mFirebaseInstance.getReference().child("Users");
-            myRef.push().setValue(u);
+            User u=new User(textLogin,textPassword,"ONLINE");
+            myRef.child("Users").push().setValue(u);
             Toast.makeText(LoginActivity.this, "Zarejestrowano!",
                     Toast.LENGTH_SHORT).show();
             logging();
@@ -111,9 +111,26 @@ public class LoginActivity extends AppCompatActivity {
 
     private void logging()
     {
+        final Handler h=new Handler();
+        h.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                builder.setMessage("Czas minął!")
+                        .setCancelable(false)
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                Intent i=new Intent(LoginActivity.this,MainActivity.class);
+                                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(i);
+                            }
+                        });
+                AlertDialog alert = builder.create();
+                alert.show();
+            }
+        },10000);
+
         progressBar.setVisibility(View.VISIBLE);
-        final DatabaseReference myRef = mFirebaseInstance.getReference().child("Users");
-        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        myRef.child("Users").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Iterator<DataSnapshot> items = dataSnapshot.getChildren().iterator();
@@ -125,10 +142,12 @@ public class LoginActivity extends AppCompatActivity {
                         progressBar.setVisibility(View.GONE);
                         UID=item.getKey(); //<--Klucz zalogowanego uzytkownika
                         nick=currLogin;
+                        h.removeCallbacksAndMessages(null);
                         startActivity(new Intent(LoginActivity.this, ProfileActivity.class));
                         return;
                     }
                 }
+                h.removeCallbacksAndMessages(null);
                 Toast.makeText(LoginActivity.this, "Nieprawidłowy login/hasło!",
                         Toast.LENGTH_SHORT).show();
                 progressBar.setVisibility(View.GONE);
@@ -156,5 +175,13 @@ public class LoginActivity extends AppCompatActivity {
             return false;
         }
         else return true;
+    }
+
+    public static String getUID() {
+        return UID;
+    }
+
+    public static String getNick() {
+        return nick;
     }
 }
